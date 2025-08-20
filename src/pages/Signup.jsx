@@ -1,20 +1,37 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import Toast from "../utils/toastService";
+import apiCall from "#lib/axios";
 
 export default function Signup() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [inputs, setInputs] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setInputs((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleSignup = (e) => {
     e.preventDefault();
 
-    // Fake Signup → store token
-    if (email && password) {
-      // call api
-      localStorage.setItem("token", "123456");
-      navigate("/dashboard");
-    }
+    const { email, password, confirmPassword } = inputs;
+    if (!email || !password || !confirmPassword)
+      return Toast.error("Please fill all fields");
+
+    if (password != confirmPassword)
+      return Toast.error(`Password & Confirm password doesn't match`);
+
+    // localStorage.setItem("token", "123456");
+    navigate("/dashboard");
   };
 
   return (
@@ -24,21 +41,27 @@ export default function Signup() {
         <input
           className="form-control mb-2"
           type="email"
+          name="email"
           placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
+          value={inputs.email}
+          onChange={handleChange}
         />
         <input
           className="form-control mb-2"
           type="password"
+          name="password"
           placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
+          value={inputs.password}
+          onChange={handleChange}
         />
 
         <input
           className="form-control mb-2"
           type="password"
+          name="confirmPassword"
           placeholder="Confirm Password"
-          onChange={(e) => setPassword(e.target.value)}
+          value={inputs.confirmPassword}
+          onChange={handleChange}
         />
         <button className="btn btn-primary">Signup</button>
       </form>

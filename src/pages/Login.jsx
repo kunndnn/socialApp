@@ -63,22 +63,6 @@ export default function Login() {
           </div>
         </form>
       </div>
-
-      {/* <form onSubmit={handleLogin}>
-        <input
-          className="form-control mb-2"
-          type="email"
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="form-control mb-2"
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button className="btn btn-primary">Login</button>
-      </form> */}
     </div>
   );
 }
