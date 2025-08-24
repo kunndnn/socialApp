@@ -4,6 +4,7 @@ import apiCall from "#lib/axios";
 
 export default function Header({ onToggleSidebar }) {
   const [name, setName] = useState(null);
+  const [profile, setProfile] = useState(null);
   useEffect(() => {
     (async () => {
       const token = localStorage.getItem("token");
@@ -13,7 +14,8 @@ export default function Header({ onToggleSidebar }) {
         },
       });
       console.log({ data });
-      setName(data?.data?.fullName)
+      setName(data?.data?.fullName);
+      setProfile(data?.data?.image);
     })();
   }, []);
   return (
@@ -45,12 +47,11 @@ export default function Header({ onToggleSidebar }) {
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            <i className="bi bi-person-circle"></i> {name}
+            <img src={profile} className="profileImg" /> {name}
           </button>
           <ul className="dropdown-menu dropdown-menu-end">
             <li>
               <Link className="dropdown-item" to="/user/profile">
-                {" "}
                 <i className="bi bi-person-circle"></i> Profile
               </Link>
             </li>

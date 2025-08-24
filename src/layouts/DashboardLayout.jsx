@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
-
+import Footer from "../components/Footer";
 export default function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(false); // desktop toggle
   const [showMobile, setShowMobile] = useState(false); // mobile offcanvas toggle
@@ -32,9 +32,7 @@ export default function DashboardLayout() {
         <main className="p-3 flex-grow-1">
           <Outlet />
         </main>
-        <footer className="bg-light text-center p-2 mt-auto">
-          <small>© 2025 Social App</small>
-        </footer>
+        <Footer />
       </div>
     </div>
   );
