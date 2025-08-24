@@ -1,18 +1,36 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import Toast from "../utils/toastService";
+import apiCall from "#lib/axios";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    if (!email) {
+      return Toast.error("Please enter email");
+    }
 
-    // Fake login → store token
-    if (email && password) {
-      localStorage.setItem("token", "123456");
+    if (!password) {
+      return Toast.error("Please enter email");
+    }
+
+    try {
+      const body = {
+        deviceId: "null",
+        deviceType: "android",
+        deviceToken: "null",
+        email,
+        password,
+      };
+      const { data } = await apiCall.post(`/login`, body);
+      sessionStorage.setItem("token", data?.data?.accessToken);
       navigate("/dashboard");
+    } catch (error) {
+      // console.log({ error });
+       return Toast.error(error?.response?.data?.message);
     }
   };
 
@@ -20,9 +38,14 @@ export default function Login() {
     <div className="container mt-5">
       <div className="card">
         <h2 className="m-2">Login</h2>
-        <form className="p-4">
+        <form className="p-4" onSubmit={handleLogin}>
           <div data-mdb-input-init className="form-outline mb-4">
-            <input type="email" id="form2Example1" className="form-control" />
+            <input
+              type="email"
+              id="form2Example1"
+              className="form-control"
+              onChange={(e) => setEmail(e.target.value)}
+            />
             <label className="form-label" htmlFor="form2Example1">
               Email address
             </label>
@@ -33,6 +56,7 @@ export default function Login() {
               type="password"
               id="form2Example2"
               className="form-control"
+              onChange={(e) => setPassword(e.target.value)}
             />
             <label className="form-label" htmlFor="form2Example2">
               Password
@@ -48,7 +72,7 @@ export default function Login() {
           </div>
 
           <button
-            type="button"
+            type="submit"
             data-mdb-button-init
             data-mdb-ripple-init
             className="btn btn-primary btn-block mb-4"

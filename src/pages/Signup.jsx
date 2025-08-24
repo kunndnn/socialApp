@@ -20,7 +20,7 @@ export default function Signup() {
     }));
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     const { email, password, confirmPassword } = inputs;
@@ -30,8 +30,25 @@ export default function Signup() {
     if (password != confirmPassword)
       return Toast.error(`Password & Confirm password doesn't match`);
 
-    // localStorage.setItem("token", "123456");
-    navigate("/dashboard");
+    // sessionStorage.setItem("token", "123456");
+    const body = {
+      deviceId: "null",
+      deviceType: "android",
+      deviceToken: "null",
+      email,
+      password,
+      fullName: Date.now(),
+    };
+
+    try {
+      const { data } = await apiCall.post(`/register`, body);
+      sessionStorage.setItem("token", data?.data?.accessToken);
+      navigate("/dashboard");
+    } catch (error) {
+      // console.log({ error });
+      // return Toast.error(error.message);
+      return Toast.error(error?.response?.data?.message);
+    }
   };
 
   return (
