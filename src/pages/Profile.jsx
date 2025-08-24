@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import apiCall from "#lib/axios"; // your axios instance
 import { toast } from "react-toastify";
 import Toast from "#utils/toastService";
+import { useDispatch } from "react-redux";
+import { setProfile } from "../store/userSlice";
 
 export default function Profile() {
   const [formData, setFormData] = useState({
@@ -10,6 +12,8 @@ export default function Profile() {
   });
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
+  const dispatch = useDispatch();
+
   // Load profile data on mount
   useEffect(() => {
     const fetchProfile = async () => {
@@ -17,21 +21,30 @@ export default function Profile() {
         const { data } = await apiCall.get("/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log({ myname: data.data.fullName });
+
+        // Set local state for form
         setFormData({
           fullName: data?.data?.fullName || "",
-          image: null, // don't preload image file
+          image: null,
         });
+
+        // ✅ Dispatch actual API data, not formData
+        dispatch(
+          setProfile({
+            fullName: data?.data?.fullName,
+            image: data?.data?.image, // assuming backend sends image URL
+          })
+        );
       } catch (err) {
         console.log({ err });
-        if (err.response.data.statusCode == 401) {
+        if (err.response?.data?.statusCode === 401) {
           return Toast.error("Unauthorized access");
         }
         return Toast.error(err?.response?.data?.message);
       }
     };
     fetchProfile();
-  }, []);
+  }, [dispatch, token]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -53,13 +66,15 @@ export default function Profile() {
         body.append("image", formData.image);
       }
 
-      await apiCall.post("/profile", body, {
+      const response = await apiCall.post("/profile", body, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
 
+      // Dispatch the updated profile data to Redux
+      dispatch(setProfile(response.data.data));
       toast.success("Profile updated successfully");
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed");

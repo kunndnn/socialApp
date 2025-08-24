@@ -1,23 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import apiCall from "#lib/axios";
+import { useSelector, useDispatch } from "react-redux";
+import { setProfile } from "../store/userSlice";
 
 export default function Header({ onToggleSidebar }) {
-  const [name, setName] = useState(null);
-  const [profile, setProfile] = useState(null);
+  
+  const profile = useSelector((state) => state.user.profile);
+  const dispatch = useDispatch();
+
   useEffect(() => {
-    (async () => {
+    const fetchProfile = async () => {
       const token = localStorage.getItem("token");
-      const { data } = await apiCall.get(`/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const { data } = await apiCall.get("/profile", {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      console.log({ data });
-      setName(data?.data?.fullName);
-      setProfile(data?.data?.image);
-    })();
-  }, []);
+      dispatch(setProfile(data.data));
+    };
+    fetchProfile();
+  }, [dispatch]);
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3">
       {/* Sidebar toggle only visible on mobile */}
@@ -47,7 +49,8 @@ export default function Header({ onToggleSidebar }) {
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            <img src={profile} className="profileImg" /> {name}
+            <img src={profile?.image} className="profileImg" />
+            {profile?.fullName}
           </button>
           <ul className="dropdown-menu dropdown-menu-end">
             <li>
