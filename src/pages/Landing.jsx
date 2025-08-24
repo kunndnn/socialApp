@@ -1,7 +1,14 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 function Landing() {
+  const [token, setToken] = useState(null);
+  useEffect(() => {
+    const hasToken = localStorage.getItem("token");
+    if (hasToken) {
+      setToken(hasToken);
+    }
+  }, []);
   return (
     <div>
       {/* Navbar */}
@@ -22,12 +29,16 @@ function Landing() {
             <ul className="navbar-nav ms-auto">
               <li className="nav-item"></li>
               <li className="nav-item">
-                <Link to="/signup" className="btn btn-primary ms-lg-3">
-                  Sign up
-                </Link>
-                <Link to="/login" className="btn btn-primary ms-lg-3">
-                  Login
-                </Link>
+                {!token && (
+                  <>
+                    <Link to="/signup" className="btn btn-primary ms-lg-3">
+                      Sign up
+                    </Link>
+                    <Link to="/login" className="btn btn-primary ms-lg-3">
+                      Login
+                    </Link>
+                  </>
+                )}
               </li>
             </ul>
           </div>

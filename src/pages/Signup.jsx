@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Toast from "../utils/toastService";
 import apiCall from "#lib/axios";
 
@@ -11,6 +11,11 @@ export default function Signup() {
   });
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const hasToken = localStorage.getItem("token");
+    if (hasToken) navigate("/user/dashboard");
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +35,7 @@ export default function Signup() {
     if (password != confirmPassword)
       return Toast.error(`Password & Confirm password doesn't match`);
 
-    // sessionStorage.setItem("token", "123456");
+    // localStorage.setItem("token", "123456");
     const body = {
       deviceId: "null",
       deviceType: "android",
@@ -42,8 +47,8 @@ export default function Signup() {
 
     try {
       const { data } = await apiCall.post(`/register`, body);
-      sessionStorage.setItem("token", data?.data?.accessToken);
-      navigate("/dashboard");
+      localStorage.setItem("token", data?.data?.accessToken);
+      navigate("/user/dashboard");
     } catch (error) {
       // console.log({ error });
       // return Toast.error(error.message);

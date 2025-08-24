@@ -4,9 +4,12 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import { ToastContainer, Zoom } from "react-toastify";
+import DashboardLayout from "./layouts/DashboardLayout";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -17,27 +20,29 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* Protected routes */}
+        {/* Protected routes (all prefixed with /user) */}
         <Route
-          path="/dashboard"
+          path="/user"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <DashboardLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
+        >
+          {/* /user/dashboard */}
+          <Route path="dashboard" element={<Dashboard />} />
+          {/* /user/profile */}
+          <Route path="profile" element={<Profile />} />
+          {/* /user/settings */}
+          <Route path="settings" element={<Settings />} />
+          {/* Redirect /user → /user/dashboard */}
+          <Route index element={<Navigate to="dashboard" replace />} />
+        </Route>
 
         {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
+
       <ToastContainer
         limit={1}
         position="top-right"
