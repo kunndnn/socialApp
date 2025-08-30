@@ -38,7 +38,7 @@ export default function Sidebar({ collapsed, showMobile, onClose }) {
     <>
       {/* Desktop sidebar */}
       <aside
-        className={`bg-dark text-white p-2 d-none d-md-flex flex-column`}
+        className={`bg-dark text-white p-2 d-none d-md-flex flex-column border-end `}
         style={{
           width: collapsed ? "70px" : "220px",
           minHeight: "100vh",

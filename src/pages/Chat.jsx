@@ -1,91 +1,87 @@
 import { useState, useEffect, useRef } from "react";
-import apiCall from "#lib/axios"; // <-- your axios wrapper with Bearer token
+import apiCall from "#lib/axios";
+const socketUrl = import.meta.env.VITE_SOCKET_URI;
+import { io } from "socket.io-client";
+import { useSelector } from "react-redux";
 
 export default function Chat() {
+  const userId = useSelector((state) => state.user.profile?._id);
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState({});
   const [input, setInput] = useState("");
+  const [file, setFile] = useState(null);
   const token = localStorage.getItem("token");
 
   const listRef = useRef();
+  const socketRef = useRef(null);
 
-  // Fetch users from API
-  const fetchUsers = async (pageNum = 1) => {
-    if (loading || !hasMore) return;
-    setLoading(true);
-    try {
-      const { data:{data} } = await apiCall.get(`/users?page=${pageNum}&limit=10`,{
-          headers: { Authorization: `Bearer ${token}` },
-      });
-      if (data.users.length > 0) {
-        setUsers((prev) => [...prev, ...data.users]);
-        setPage(pageNum + 1);
-      } else {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error("Error fetching users:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // First load
+  // ✅ Create socket connection only once
   useEffect(() => {
-    fetchUsers(1);
-  }, []);
+    const socket = io(socketUrl, {
+      query: { userId },
+    });
+    socketRef.current = socket;
 
-  // Infinite scroll for users list
-  useEffect(() => {
-    const listEl = listRef.current;
+    socket.on("connect", () => {
+      console.log(socket.id, "connected");
+    });
 
-    const handleScroll = () => {
-      if (!listEl) return;
-      if (listEl.scrollTop + listEl.clientHeight >= listEl.scrollHeight - 50) {
-        fetchUsers(page);
-      }
-    };
+    socket.emit("chatsListing", { userId });
+    socket.on("chatsListing", (data) => {
+      setUsers(data.data.chats);
+    });
 
-    listEl?.addEventListener("scroll", handleScroll);
-    return () => listEl?.removeEventListener("scroll", handleScroll);
-  }, [page, hasMore, loading]);
-
-  // Handle user selection
-  const handleUserSelect = (user) => {
-    setSelectedUser(user);
-    if (!messages[user.id]) {
-      setMessages((prev) => ({ ...prev, [user.id]: [] }));
-    }
-  };
-
-  // Send message
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!input.trim() || !selectedUser) return;
-
-    const newMsg = { from: "me", text: input };
-    setMessages((prev) => ({
-      ...prev,
-      [selectedUser.id]: [...prev[selectedUser.id], newMsg],
-    }));
-
-    // Dummy reply
-    setTimeout(() => {
+    // Incoming message
+    socket.on("newMessage", ({ from, to, text, fileUrl }) => {
       setMessages((prev) => ({
         ...prev,
-        [selectedUser.id]: [
-          ...prev[selectedUser.id],
-          { from: "them", text: `Reply from ${selectedUser.fullName}` },
-        ],
+        [from]: [...(prev[from] || []), { from, text, fileUrl }],
       }));
-    }, 600);
+    });
+
+    return () => {
+      socket.disconnect();
+      socket.off("chatsListing");
+      socket.off("newMessage");
+    };
+  }, [userId]);
+
+  const handleUserSelect = (user) => {
+    setSelectedUser(user.userDetails);
+    if (!messages[user.userDetails.id]) {
+      setMessages((prev) => ({ ...prev, [user.userDetails.id]: [] }));
+    }
+  };
+
+  const handleSend = (e) => {
+    e.preventDefault();
+    if ((!input.trim() && !file) || !selectedUser) return;
+
+    const msg = {
+      from: "me",
+      text: input,
+      fileUrl: file ? URL.createObjectURL(file) : null, // preview
+    };
+
+    setMessages((prev) => ({
+      ...prev,
+      [selectedUser.id]: [...(prev[selectedUser.id] || []), msg],
+    }));
+
+    // send via socket (replace with backend file upload handling)
+    socketRef.current.emit("sendMessage", {
+      from: userId,
+      to: selectedUser.id,
+      text: input,
+      file: file ? file.name : null, // real-world: upload to server, send URL
+    });
 
     setInput("");
+    setFile(null);
   };
 
   return (
@@ -98,28 +94,23 @@ export default function Chat() {
             className="list-group overflow-auto"
             style={{ height: "100%" }}
           >
+            <input
+              type="text"
+              class="form-control mb-2"
+              placeholder="Search User !!!"
+            />
             {users.map((user) => (
               <button
-                key={user.id}
+                key={user.userDetails.id}
                 className={`list-group-item list-group-item-action ${
-                  selectedUser?.id === user.id ? "active" : ""
+                  selectedUser?.id === user.userDetails.id ? "active" : ""
                 }`}
                 onClick={() => handleUserSelect(user)}
               >
                 <i className="bi bi-person-circle me-2"></i>
-                {user.fullName}
+                {user.userDetails.fullName}
               </button>
             ))}
-            {loading && (
-              <div className="text-center py-2">
-                <div className="spinner-border spinner-border-sm" />
-              </div>
-            )}
-            {!hasMore && (
-              <div className="text-center py-2 text-muted small">
-                No more users
-              </div>
-            )}
           </div>
         </div>
 
@@ -151,24 +142,61 @@ export default function Chat() {
                       }`}
                       style={{ maxWidth: "70%" }}
                     >
-                      {msg.text}
+                      {msg.text && <div>{msg.text}</div>}
+                      {msg.fileUrl &&
+                        (msg.fileUrl.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                          <img
+                            src={msg.fileUrl}
+                            alt="attachment"
+                            className="img-fluid rounded mt-1"
+                          />
+                        ) : (
+                          <a
+                            href={msg.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="d-block mt-1 text-decoration-underline"
+                          >
+                            📎 {msg.fileUrl.split("/").pop()}
+                          </a>
+                        ))}
                     </div>
                   </div>
                 ))}
               </div>
               <div className="p-2 border-top">
-                <form onSubmit={handleSend} className="d-flex">
-                  <input
+                <form
+                  onSubmit={handleSend}
+                  className="d-flex align-items-center"
+                >
+                  <textarea
                     type="text"
                     className="form-control me-2"
                     placeholder="Type a message..."
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                   />
+                  <input
+                    type="file"
+                    className="d-none"
+                    id="fileInput"
+                    onChange={(e) => setFile(e.target.files[0])}
+                  />
+                  <label
+                    htmlFor="fileInput"
+                    className="btn btn-outline-secondary me-2 mb-0"
+                  >
+                    <i className="bi bi-paperclip"></i>
+                  </label>
                   <button className="btn btn-primary" type="submit">
                     <i className="bi bi-send"></i>
                   </button>
                 </form>
+                {file && (
+                  <div className="small mt-1 text-muted">
+                    📎 {file.name} selected
+                  </div>
+                )}
               </div>
             </>
           ) : (

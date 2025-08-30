@@ -21,7 +21,7 @@ export default function Header({ onToggleSidebar }) {
   }, [dispatch]);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3 border-bottom">
       {/* Sidebar toggle only visible on mobile */}
       <button className="btn btn-outline-light  me-2" onClick={onToggleSidebar}>
         ☰
