@@ -29,7 +29,7 @@ export default function Header({ onToggleSidebar }) {
 
       {/* Brand / Logo */}
       <a className="navbar-brand fw-bold" href="/">
-        User's Dashboard
+        Dashboard
       </a>
 
       {/* Right-side items */}
@@ -60,7 +60,7 @@ export default function Header({ onToggleSidebar }) {
             </li>
             <li>
               <Link className="dropdown-item" to="/user/settings">
-                <i class="bi bi-gear"></i> Settings
+                <i className="bi bi-gear"></i> Settings
               </Link>
             </li>
             <li>

@@ -6,39 +6,43 @@ import apiCall from "#lib/axios";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [disable, setDisable] = useState(false);
   const navigate = useNavigate();
 
-    useEffect(() => {
-      const hasToken = localStorage.getItem("token");
-      if (hasToken) navigate("/user/dashboard");
-    }, []);
+  useEffect(() => {
+    const hasToken = localStorage.getItem("token");
+    if (hasToken) navigate("/user/dashboard");
+  }, []);
 
-    const handleLogin = async (e) => {
-      e.preventDefault();
-      if (!email) {
-        return Toast.error("Please enter email");
-      }
+  const toggleDisable = () => setDisable(!disable);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      return Toast.error("Please enter email");
+    }
 
-      if (!password) {
-        return Toast.error("Please enter email");
-      }
+    if (!password) {
+      return Toast.error("Please enter email");
+    }
+    toggleDisable();
 
-      try {
-        const body = {
-          deviceId: "null",
-          deviceType: "android",
-          deviceToken: "null",
-          email,
-          password,
-        };
-        const { data } = await apiCall.post(`/login`, body);
-        localStorage.setItem("token", data?.data?.accessToken);
-        navigate("/user/dashboard");
-      } catch (error) {
-        // console.log({ error });
-        return Toast.error(error?.response?.data?.message);
-      }
-    };
+    try {
+      const body = {
+        deviceId: "null",
+        deviceType: "android",
+        deviceToken: "null",
+        email,
+        password,
+      };
+      const { data } = await apiCall.post(`/login`, body);
+      localStorage.setItem("token", data?.data?.accessToken);
+      navigate("/user/dashboard");
+    } catch (error) {
+      // console.log({ error });
+      return Toast.error(error?.response?.data?.message);
+    }
+    toggleDisable();
+  };
 
   return (
     <div className="container mt-5">
@@ -82,6 +86,7 @@ export default function Login() {
             data-mdb-button-init
             data-mdb-ripple-init
             className="btn btn-primary btn-block mb-4"
+            disabled={disable}
           >
             Sign in
           </button>

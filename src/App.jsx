@@ -10,7 +10,8 @@ import Landing from "./pages/Landing";
 import { ToastContainer, Zoom } from "react-toastify";
 import DashboardLayout from "./layouts/DashboardLayout";
 import NotFound from "./pages/NotFound";
-
+import Chat from "./pages/Chat";
+import User from "./pages/User";
 function App() {
   return (
     <>
@@ -35,6 +36,8 @@ function App() {
           <Route path="profile" element={<Profile />} />
           {/* /user/settings */}
           <Route path="settings" element={<Settings />} />
+          <Route path="Users" element={<User />} />
+          <Route path="chats" element={<Chat />} />
           {/* Redirect /user → /user/dashboard */}
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>

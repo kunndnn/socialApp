@@ -6,6 +6,8 @@ function SidebarLinks({ collapsed, onClick }) {
     { to: "/user/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { to: "/user/profile", label: "Profile", icon: "bi-person-circle" },
     { to: "/user/settings", label: "Settings", icon: "bi-gear" },
+    { to: "/user/users", label: "Users", icon: "bi-person" },
+    { to: "/user/chats", label: "Chat", icon: "bi-chat" },
     { to: "/logout", label: "Logout", icon: "bi-box-arrow-right" },
   ];
 
